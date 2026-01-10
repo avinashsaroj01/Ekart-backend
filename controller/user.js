@@ -1,35 +1,23 @@
-// signup user
+const  Category  = require("../model/Category");
+const  User  = require("../model/User");
 
-const User = require("../model/User");
-
-exports.createUser = async (req, res) => {
+exports.fetchUserById = async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
   try {
-    const user = await User.create(req.body);
-    res.status(201).json(user);
+    const user = await User.findById(id);
+    res.status(200).json(user);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json(err);
   }
 };
 
-// Login  user
-
-exports.checkUser = async (req, res) => {
+exports.updateUser = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "user doesn't exist" });
-    }
-    if (user.password != password) {
-      return res.status(401).json({ message: "invalid credentials" });
-    }
-
-    // success ( user exists)
-
-    res.status(200).json({ message: "Logged in successfully", user });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(400).json(err);
   }
 };

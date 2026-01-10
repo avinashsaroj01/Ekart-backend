@@ -8,6 +8,7 @@ exports.createProduct = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
 exports.fetchAllProducts = async (req, res) => {
   // filter = {"category":["smartphone","laptops"]}
   // sort = {_sort:"price",_order="desc"}
@@ -31,7 +32,7 @@ exports.fetchAllProducts = async (req, res) => {
     query = query.sort({ [req.query._sort]: req.query._order });
   }
 
-const totalDocs = await totalProductsQuery.clone().countDocuments();
+  const totalDocs = await totalProductsQuery.clone().countDocuments();
   console.log({ totalDocs });
 
   if (req.query._page && req.query._limit) {
@@ -46,5 +47,33 @@ const totalDocs = await totalProductsQuery.clone().countDocuments();
     res.status(200).json(docs);
   } catch (err) {
     res.status(400).json(err);
+  }
+};
+
+exports.fetchProductById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await Product.findById(id);
+    if (product) {
+      res.status(200).json(product);
+    }
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await Product.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (product) {
+      res.status(200).json(product);
+    }
+  } catch (error) {
+    res.status(400).json(error);
   }
 };
