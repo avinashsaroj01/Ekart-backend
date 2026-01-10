@@ -7,6 +7,7 @@ const authRoute = require("./routes/Auth");
 const brandsRoute = require("./routes/Brand");
 const categoryRoute = require("./routes/Category");
 const cartRoute = require("./routes/Cart");
+const orderRoute = require("./routes/Order");
 const cors = require("cors");
 //middleware
 app.use(express.json());
@@ -33,7 +34,6 @@ app.use("/products", productsRoute);
 app.use("/users", usersRoute);
 app.use("/auth", authRoute);
 
-
 //brand routes
 app.use("/brands", brandsRoute);
 
@@ -43,6 +43,8 @@ app.use("/categories", categoryRoute);
 
 // cart routes
 app.use("/cart", cartRoute);
+// order routes
+app.use("/orders", orderRoute);
 app.listen(5000, () => {
   console.log("Server statred at port : 5000");
 });
