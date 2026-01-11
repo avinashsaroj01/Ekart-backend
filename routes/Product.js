@@ -13,9 +13,7 @@ const router = express.Router();
 router
   .post("/", createProduct)
   .get("/", fetchAllProducts)
-  .get("/", fetchCategories)
-  .get("/", fetchBrands)
   .get("/:id", fetchProductById)
-  .get("/:id", updateProduct);
+  .patch("/:id", updateProduct);
 
 module.exports = router;
