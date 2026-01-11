@@ -2,9 +2,11 @@ const mongoose = require("mongoose");
   const { Schema } = mongoose;
   const userSchema = new Schema({
     email: { type: String, required: true },
-    password: { type: String, required: true },
-    role: { type: String, required: true },
+    password: { type: Buffer, required: true },
+    role: { type: String, required: true, default: "user" },
     addresses: { type: [Schema.Types.Mixed], required: true },
+    name: { type: String },
+    salt: { type: Buffer },
   });
 
 const User = mongoose.model("User", userSchema);
