@@ -1,6 +1,10 @@
 const User = require("../model/User");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+
 const { sanitizeUser } = require("../services/common");
+const SECRET_KEY = "SECRET_KEY";
+
 exports.createUser = async (req, res) => {
   try {
     var salt = crypto.randomBytes(16);
@@ -18,10 +22,21 @@ exports.createUser = async (req, res) => {
           if (err) {
             res.status(400).json(err);
           } else {
-            res.status(201).json(sanitizeUser(doc));
+            const token = jwt.sign(sanitizeUser(doc), SECRET_KEY);
+            res.cookie("name", "tobi", {
+              domain: ".example.com",
+              path: "/admin",
+              secure: true,
+            });
+            res.cookie("jwt", token, {
+              expires: new Date(Date.now() + 3600000),
+              httpOnly: true,
+            });
+
+            res.status(201).json({ id: doc.id, role: doc.role });
           }
         });
-      }
+      },
     );
   } catch (err) {
     res.status(400).json(err);
@@ -29,10 +44,19 @@ exports.createUser = async (req, res) => {
 };
 
 exports.loginUser = async (req, res) => {
-  res.json(req.user);
+  res.cookie("jwt", req.user.token, {
+    expires: new Date(Date.now() + 3600000),
+    httpOnly: true,
+  });
+
+  res.status(201).json(req.user.token);
 };
-exports.checkUser = async (req, res) => {
-  res.json(req.user);
+exports.checkAuth = async (req, res) => {
+  if (req.user) {
+    res.json(req.user);
+  } else {
+    res.sendStatus(401);
+  }
 };
 
 

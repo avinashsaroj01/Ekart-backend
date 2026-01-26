@@ -1,11 +1,11 @@
 const express = require("express");
-const { createUser, loginUser, checkUser } = require("../controller/auth");
+const { createUser, loginUser, checkUser, checkAuth } = require("../controller/auth");
 const passport = require("passport");
 const router = express.Router();
 //  /auth is already added in base path
 router
   .post("/signup", createUser)
   .post("/login", passport.authenticate("local"), loginUser)
-  .get("/check", passport.authenticate("local"), checkUser);
+  .get("/check", passport.authenticate("jwt"), checkAuth);
 
 module.exports = router;
