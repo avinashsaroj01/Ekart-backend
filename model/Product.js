@@ -11,7 +11,7 @@ const productSchema = new Schema({
   brand: String,
   category: String,
   thumbnail: String,
-  images: [String],
+  images: [String],   
   deleted:{type:Boolean,default:false}
 });
 
