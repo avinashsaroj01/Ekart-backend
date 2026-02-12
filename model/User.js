@@ -7,6 +7,9 @@ const mongoose = require("mongoose");
     addresses: { type: [Schema.Types.Mixed], required: true },
     name: { type: String },
     salt: { type: Buffer },
+    verifyOtpExpiresAt: { type: Number, default: 0 },
+    passwordResetOtp: { type: String, default: "" },
+    resetOtpExpiresAt: { type: Number, default: 0 },
   });
 
 const User = mongoose.model("User", userSchema);

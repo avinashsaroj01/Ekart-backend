@@ -1,3 +1,5 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -24,11 +26,10 @@ const LocalStrategy = require("passport-local").Strategy;
 const JwtStrategy = require("passport-jwt").Strategy;
 
 const app = express();
-const SECRET_KEY = "SECRET_KEY";
 
 /* -------------------- DATABASE -------------------- */
 mongoose
-  .connect("mongodb://localhost:27017/ekartdb")
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Database connected"))
   .catch(console.error);
 
@@ -36,11 +37,20 @@ mongoose
 app.use(express.json());
 app.use(cookieParser());
 
+const allowedOrigin = process.env.CLIENT_URL;
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: function (origin, callback) {
+      // allow requests with no origin (like Postman)
+      if (!origin || origin === allowedOrigin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-    exposedHeaders: ["X-Total-Count"], // ✅ MUST STAY
+    exposedHeaders: ["X-Total-Count"],
   }),
 );
 
@@ -73,7 +83,7 @@ passport.use(
               return done(null, false);
             }
 
-            const token = jwt.sign(sanitizeUser(user), SECRET_KEY, {
+            const token = jwt.sign(sanitizeUser(user), process.env.SECRET_KEY, {
               expiresIn: "1h",
             });
 
@@ -92,7 +102,7 @@ passport.use(
   new JwtStrategy(
     {
       jwtFromRequest: cookieExtractor,
-      secretOrKey: SECRET_KEY,
+      secretOrKey: process.env.SECRET_KEY,
     },
     async (payload, done) => {
       try {

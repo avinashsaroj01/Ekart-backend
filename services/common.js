@@ -1,4 +1,8 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const passport = require("passport");
+const nodemailer = require("nodemailer");
+
 
 exports.isAuth = () => {
   return passport.authenticate("jwt", { session: false });
@@ -16,3 +20,13 @@ exports.cookieExtractor = function (req) {
   }
   return token;
 };
+
+exports.transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER, // apikey
+    pass: process.env.SMTP_PASS, // real SMTP key
+  },
+});
