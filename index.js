@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 const passport = require("passport");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(process.env.STRIPE_KEY);
+
 
 const User = require("./model/User");
 
@@ -24,7 +26,7 @@ const JwtStrategy = require("passport-jwt").Strategy;
 const app = express();
 const SECRET_KEY = "SECRET_KEY";
 
-/* -------------------- DB -------------------- */
+/* -------------------- DATABASE -------------------- */
 mongoose
   .connect("mongodb://localhost:27017/ekartdb")
   .then(() => console.log("✅ Database connected"))
@@ -38,7 +40,7 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
-     exposedHeaders: ["X-Total-Count"],
+    exposedHeaders: ["X-Total-Count"], // ✅ MUST STAY
   }),
 );
 
@@ -93,7 +95,6 @@ passport.use(
       secretOrKey: SECRET_KEY,
     },
     async (payload, done) => {
-      console.log("✅ JWT payload:", payload);
       try {
         const user = await User.findById(payload.id);
         if (!user) return done(null, false);
@@ -114,7 +115,30 @@ app.use("/categories", isAuth(), categoryRoute);
 app.use("/cart", isAuth(), cartRoute);
 app.use("/orders", isAuth(), orderRoute);
 
-app.get("/", (_, res) => res.json({ status: "OK" }));
+app.get("/", (req, res) => {
+  res.json({ status: "OK" });
+});
+
+/* -------------------- STRIPE PAYMENT (UNCHANGED) -------------------- */
+const calculateOrderAmount = (items) => {
+  return 1400;
+};
+
+app.post("/create-payment-intent", async (req, res) => {
+  const { items } = req.body;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: calculateOrderAmount(items),
+    currency: "inr",
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  res.send({
+    clientSecret: paymentIntent.client_secret,
+  });
+});
 
 /* -------------------- SERVER -------------------- */
 app.listen(5000, () => {
