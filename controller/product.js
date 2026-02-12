@@ -1,13 +1,54 @@
 const Product = require("../model/Product");
 
+
+
+
+const getUnsplashImages = async (query) => {
+  const response = await fetch(
+    `https://api.unsplash.com/search/photos?query=${query}&per_page=3&client_id=${process.env.UNSPLASH_ACCESS_KEY}`,
+  );
+
+  const data = await response.json();
+
+  if (!data.results || data.results.length === 0) {
+    return [];
+  }
+
+  return data.results.map(
+    (img) => img.urls.raw + "&auto=format&fit=crop&w=500&q=80",
+  );
+};
+
+
 exports.createProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    let productData = { ...req.body };
+
+    if (!req.body.thumbnail || req.body.thumbnail.trim() === "") {
+      try {
+        const searchQuery = `${req.body.brand || ""} ${req.body.category || ""}`;
+        const images = await getUnsplashImages(searchQuery);
+
+        if (images.length > 0) {
+          productData.thumbnail = images[0];
+          productData.images = images;
+        }
+      } catch (unsplashError) {
+        console.log("Unsplash error:", unsplashError.message);
+        // Continue without blocking product creation
+      }
+    }
+
+    const product = await Product.create(productData);
     res.status(201).json(product);
+
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 };
+
+
+
 
 exports.fetchAllProducts = async (req, res) => {
   // filter = {"category":["smartphone","laptops"]}
