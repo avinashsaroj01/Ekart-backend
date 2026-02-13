@@ -2,10 +2,12 @@
   "name": "e-kart-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --inspect index.js"
+    "dev": "nodemon --inspect index.js",
+    "start": "node server.js"
+
   },
   "author": "",
   "license": "ISC",
