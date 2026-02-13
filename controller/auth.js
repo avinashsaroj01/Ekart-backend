@@ -29,9 +29,10 @@ exports.createUser = async (req, res) => {
           expiresIn: "1h",
         });
 
-        // ✅ FIX: use SAME cookie name everywhere
         res.cookie("token", token, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
           maxAge: 3600000,
         });
 
@@ -45,9 +46,11 @@ exports.createUser = async (req, res) => {
 
 /* ---------- LOGIN ---------- */
 exports.loginUser = async (req, res) => {
-  // req.user.token comes from LocalStrategy (already correct)
+  // ✅ FIXED: use req.user.token
   res.cookie("token", req.user.token, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 3600000,
   });
 
@@ -56,8 +59,6 @@ exports.loginUser = async (req, res) => {
 
 /* ---------- CHECK AUTH ---------- */
 exports.checkAuth = async (req, res) => {
-  console.log("🔥 req.user:", req.user);
-
   if (req.user) {
     res.json(req.user);
   } else {
@@ -65,10 +66,9 @@ exports.checkAuth = async (req, res) => {
   }
 };
 
+/* ---------- SEND RESET PASSWORD OTP ---------- */
 exports.sendResetPasswordOtp = async (req, res) => {
-  if (!req.body) req.body = {}; // ✅ guard
-
-  const { email } = req.body;
+  const { email } = req.body || {};
 
   if (!email) {
     return res.json({ success: false, message: "Email is required" });
@@ -83,7 +83,7 @@ exports.sendResetPasswordOtp = async (req, res) => {
     const otp = String(Math.floor(100000 + Math.random() * 900000));
 
     user.passwordResetOtp = otp;
-    user.resetOtpExpiresAt = Date.now() + 15 * 60 * 1000; // 15 min
+    user.resetOtpExpiresAt = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     const mailOptions = {
@@ -104,6 +104,7 @@ exports.sendResetPasswordOtp = async (req, res) => {
   }
 };
 
+/* ---------- RESET PASSWORD ---------- */
 exports.resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
@@ -135,7 +136,10 @@ exports.resetPassword = async (req, res) => {
       "sha256",
       async (err, hashedPassword) => {
         if (err) {
-          return res.json({ success: false, message: "Password reset failed" });
+          return res.json({
+            success: false,
+            message: "Password reset failed",
+          });
         }
 
         user.password = hashedPassword;

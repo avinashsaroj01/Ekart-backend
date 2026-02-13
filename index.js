@@ -26,7 +26,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const JwtStrategy = require("passport-jwt").Strategy;
 
 const app = express();
-
+app.set("trust proxy", 1);
 /* -------------------- DATABASE -------------------- */
 mongoose
   .connect(process.env.MONGO_URI)
